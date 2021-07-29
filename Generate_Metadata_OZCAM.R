@@ -17,10 +17,10 @@ ala_config(email="iangbrennan@gmail.com")
 ## registration numbers from the ABTC begin with ABTCXXXXXX
 
 # read in the file of samples to collect metadata for
-# THIS REQUIRES COLUMNS: RegNo, Genus, Species (named exactly)
-#extracts <- read_sheet("https://docs.google.com/spreadsheets/d/1pswHDW2rq389WomTh5Crg59RPXDV9r6B160P5AV7q4Y/edit#gid=0") # pygos
+# THIS REQUIRES COLUMNS: RegNo, Genus, Species (named exactly), Extraction
+extracts <- read_sheet("https://docs.google.com/spreadsheets/d/1pswHDW2rq389WomTh5Crg59RPXDV9r6B160P5AV7q4Y/edit#gid=0") # pygos
 #extracts <- read_sheet("https://docs.google.com/spreadsheets/d/15jPBNIGyvrhjUp0CWgw14ZqKVrHoQq1F8fPedD_-UA0/edit#gid=0") # Anilios
-extracts <- read_sheet("https://docs.google.com/spreadsheets/d/13NkCufHJMIbReiZeTXsXCsuRg0MFTrIXsur7pYNdKik/edit#gid=0") # diplos
+#extracts <- read_sheet("https://docs.google.com/spreadsheets/d/13NkCufHJMIbReiZeTXsXCsuRg0MFTrIXsur7pYNdKik/edit#gid=0") # diplos
 
 
 ## if your column RegNo includes the museum code (e.g. WAM R123456)
@@ -28,14 +28,14 @@ extracts <- read_sheet("https://docs.google.com/spreadsheets/d/13NkCufHJMIbReiZe
 #                             institution = sapply(extracts$RegNo, function(x) str_split(x, " ")[[1]][1]))
 
 # ABTC numbers are formatted differently, add 'ABTC' before the number
-#extracts[which(extracts$institution == "ABTC"),"number"] <- 
-#  sapply(extracts[which(extracts$institution == "ABTC"),"number"], function(x) paste0("ABTC",x))
+#extracts[which(extracts$institution == "ABTC"),"RegNo"] <- 
+#  sapply(extracts[which(extracts$institution == "ABTC"),"RegNo"], function(x) paste0("ABTC",x))
 
 # if you have samples you'd like to exclude from this activity
-#extracts <- filter(extracts, AusARG == "yes")
+extracts <- filter(extracts, AusARG == "yes")
 
 # pull the ala records for your broad group
-records <- ala_occurrences(taxa = select_taxa("Diplodactylidae"),
+records <- ala_occurrences(taxa = select_taxa("Pygopodidae"),
                            columns = select_columns("scientificName",
                                                     "decimalLatitude",
                                                     "decimalLongitude",
@@ -78,13 +78,11 @@ paste("there are", (nrow(extracts)-nrow(easy_matches)), "records to curate by ha
 for (kk in 1:nrow(easy_matches)){
   print(kk)
   curr.match <- easy_matches[kk,]
-  #easy_matches[kk,"scientificName"] <- paste(extracts[which(extracts$number == curr.match$catalogNumber),"Genus"],
-  #                                           extracts[which(extracts$number == curr.match$catalogNumber),"Species"])
-  #easy_matches[kk,"genus"] <- extracts[which(extracts$number == curr.match$catalogNumber),"Genus"]
   easy_matches[kk,"scientificName"] <- paste(extracts[which(extracts$RegNo == curr.match$catalogNumber),"Genus"],
                                              extracts[which(extracts$RegNo == curr.match$catalogNumber),"Species"])
   easy_matches[kk,"genus"] <- extracts[which(extracts$RegNo == curr.match$catalogNumber),"Genus"]
   easy_matches[kk,"species"] <- easy_matches[kk,"scientificName"]
+  easy_matches[kk,"Extraction"] <- extracts[which(extracts$RegNo == curr.match$catalogNumber),"Extraction"]
 }
 
 # find the ones that slipped through the cracks (no ALA records)
@@ -98,7 +96,7 @@ colnames(missing) <- colnames(easy_matches)
 missing <- mutate(missing, scientificName = paste(missed$Genus, missed$Species),
                            genus = missed$Genus, species = paste(missed$Genus, missed$Species),
                            #catalogNumber = missed$number, institutionCode = missed$institution)
-                           catalogNumber = missed$RegNo, institutionCode = "?")
+                           catalogNumber = missed$RegNo, institutionCode = "?", Extraction = missed$Extraction)
 
 
 # add the samples lacking ALA data to the bottom of your successful searches
@@ -118,7 +116,8 @@ ncbi_tax <- as.vector(unlist(ncbi_tax))
 all_matches$taxonID <- ncbi_tax
 
 # make our data look like the BPA metadata sheet
-metadata <- data.frame(sample_id = "",
+metadata <- data.frame(extraction_id = all_matches$Extraction, # this is a new column and should be removed before submitting to BPA
+                       sample_id = "",
                        specimen_id = paste(all_matches$institutionCode, all_matches$catalogNumber),
                        specimen_id_description = all_matches$collectionName,
                        tissue_number = all_matches$catalogNumber,
@@ -137,7 +136,7 @@ metadata <- data.frame(sample_id = "",
                        family = all_matches$family,
                        genus = all_matches$genus,
                        species = sapply(all_matches$species, function(x) str_split(x, " ")[[1]][2]),
-                       lineage = all_matches$scientificName,
+                       lineage = all_matches$scientificName, # this is a new column and should be removed before submitting to BPA
                        subspecies = "",
                        common_name = all_matches$common_name_and_lsid,
                        identified_by = all_matches$identifiedBy,
@@ -181,4 +180,4 @@ metadata <- data.frame(sample_id = "",
 
 # write your metadata to a csv file, and add it to the sheet here: 
 # https://docs.google.com/spreadsheets/d/1MG3DbOEgEtww2S1Y6XBmxg_0YWS1mh1Faf1jsl4QLi8/edit?ts=60cae464#gid=0
-write.csv(metadata, file="~/Desktop/Diplodactylidae_Metadata_Test.csv", row.names = F)
+write.csv(metadata, file="~/Desktop/Pygopodidae_Metadata_TESTO.csv", row.names = F)
