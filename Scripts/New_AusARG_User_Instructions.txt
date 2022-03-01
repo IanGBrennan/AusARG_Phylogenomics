@@ -1,0 +1,10 @@
+New AusARG Phylogenomics User
+	+ get access to nick@rsb.anu.edu.au and a new account
+	+ in /home/[user]/ make 'SqCL_Pipeline' directory
+		/home/[user]$ mkdir SqCL_Pipeline
+	+ superuser must 'mount --bind' the /Data2/SqCL directory
+		/home/[user]$ sudo mount --bind /Data2/SqCL /home/[user]/SqCL_Pipeline
+	+ upload data and samples.csv file to subdirectory within SqCL_Pipeline
+	+ superuser must make this new directory read/write/executable 
+		$ sudo chmod 777 /home/[user]/SqCL_Pipeline/[subdir]
+	
