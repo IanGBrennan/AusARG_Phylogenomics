@@ -9,7 +9,8 @@ require(dplyr)
 concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv",
                                 out.path = "/home/ian/SqCL_Pipeline/Optimization/",
                                 adaptor1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC*ATCTCGTATGCCGTCTTCTGCTTG",
-                                adaptor2 = "AATGATACGGCGACCACCGAGATCTACAC*ACACTCTTTCCCTACACGACGCTCTTCCGATCT"){
+                                adaptor2 = "AATGATACGGCGACCACCGAGATCTACAC*ACACTCTTTCCCTACACGACGCTCTTCCGATCT",
+                                total.readno = c(2,6,8)){
   
   # set working directory to sample.dir
   setwd(sample.dir)
@@ -20,19 +21,20 @@ concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv"
   # make a dataframe after cleaning the information
   file.ids <- data.frame(filename = seq.files,
                          sample.id = sapply(seq.files, function(x) strsplit(x, "_")[[1]][1]),
-                         barcode = sapply(seq.files, function(x) strsplit(x, "_")[[1]][3]),
-                         sample.no = sapply(seq.files, function(x) strsplit(x, "_")[[1]][4]),
-                         l.no = sapply(seq.files, function(x) strsplit(x, "_")[[1]][5]),
-                         direction = sapply(seq.files, function(x) strsplit(x, "_")[[1]][6]))
+                         barcode = sapply(seq.files, function(x) strsplit(x, "_")[[1]][5]), # was [3]
+                         sample.no = sapply(seq.files, function(x) strsplit(x, "_")[[1]][6]), # was [4]
+                         l.no = sapply(seq.files, function(x) strsplit(x, "_")[[1]][7]), # was [5]
+                         direction = sapply(seq.files, function(x) strsplit(x, "_")[[1]][8])) # was [8]
   rownames(file.ids) <- NULL
   
   # read in the sample metadata file
   info <- read.csv(paste0(sample.dir,"/",metadata.file), header=T)
   # choose the appropriate data
-  info <- select(info, "library_id", "genus", "species", "specimen_id", 
-                 "library_index_seq_P7", "library_index_seq_P5")
+  info <- dplyr::select(info, "library_id", "genus", "species", "specimen_id", 
+                 #"library_index_seq_P7", "library_index_seq_P5")
+                 "library_index_seq", "library_index_seq_dual")
   # make a column for the sample info
-  info <- mutate(info, sample = paste0(genus, "_", species, "_", specimen_id))
+  info <- dplyr::mutate(info, sample = paste0(genus, "_", species, "_", specimen_id))
   # add the adaptor information to the file
   info$adaptor1 <- adaptor1
   info$adaptor2 <- adaptor2
@@ -55,17 +57,24 @@ concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv"
     out.fwd <- paste0(info[j,"sample"], "_", curr.sample, "_R1_concat.fastq.gz")
     out.rev <- paste0(info[j,"sample"], "_", curr.sample, "_R2_concat.fastq.gz")
     
-    # make the bash call to concatenate the files
-    cat.fwd <- paste("cat", curr.fwd$filename[[1]],
+    # make the bash call to concatenate the files (depends on the number of read files per sample!)
+    if(total.readno == 2) {
+          cat.fwd <- paste("mv", curr.fwd$filename[[1]], out.fwd)
+          cat.rev <- paste("mv", curr.rev$filename[[1]], out.rev)
+    }
+    if(total.readno == 8) {
+          cat.fwd <- paste("cat", curr.fwd$filename[[1]],
                      curr.fwd$filename[[2]],
                      curr.fwd$filename[[3]],
                      curr.fwd$filename[[4]],
                      ">>", out.fwd)
-    cat.rev <- paste("cat", curr.rev$filename[[1]],
+          cat.rev <- paste("cat", curr.rev$filename[[1]],
                      curr.rev$filename[[2]],
                      curr.rev$filename[[3]],
                      curr.rev$filename[[4]],
                      ">>", out.rev)
+    }
+
     
     # do the concatenating
     system(cat.fwd)
@@ -82,9 +91,9 @@ concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv"
                             read2 = concatenated.files$read2,
                             adaptor1 = info$adaptor1,
                             adaptor2 = info$adaptor2,
-                            barcode1 = info$library_index_seq_P7,
-                            barcode2 = info$library_index_seq_P5,
-                            lineage = paste0(info$genus,"_",info$species))
+                            barcode1 = info$library_index_seq,
+                            barcode2 = info$library_index_seq_dual,
+                            lineage = paste0(info$genus,"_",info$species,"_",info$specimen_id))
   
   write.csv(pipeline.in, paste0(sample.dir,"/",outfile), row.names = F)
 }
