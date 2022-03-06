@@ -43,7 +43,7 @@ source("Path_to/SqCL_Pipeline/AusArg_tools.R")
 
 We want to generate a sample info file that holds the basic info about each sample so we can refer to that later. The sample info file will look roughly like this:
 ```{r eval=T, echo=F}
-sinfo <- read.csv("samples.csv", header=T)
+sinfo <- read.csv("Scripts/sample_samples.csv", header=T)
 ```
 ```{r eval=T, echo=F}
 sinfo[1:3,]
@@ -74,7 +74,7 @@ After executing this function, you should have successfully created a sample inf
 
 ---
 
-&nbsp;  
+\pagebreak
 
 # Read Assembly
 
@@ -194,7 +194,7 @@ From this, we can further choose which matches we want to keep and which to disc
 
 Run \textcolor{Dandelion}{individually}:
 ```{bash eval=F}
-~/SqCL_Pipeline$ python Scripts/match_contigs_to_targets.py \
+~/SqCL_Pipeline$ python Scripts/match_contigs_to_probes.py \
                  --dir [...] --sample [...] --evalue [...] --db [...]
 ```
 
