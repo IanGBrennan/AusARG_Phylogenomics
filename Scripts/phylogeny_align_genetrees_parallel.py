@@ -218,9 +218,34 @@ def trim_align(args, alns, outdir):
 	align_em = subprocess.call('parallel -j %s --bar :::: %s/alignment_shell.txt' % (args.CPU, outdir), shell=True)
 
 
-def fix_reverse(outdir):
-		
-	subprocess.call("grep --include=\*.fasta.aln-gb -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
+def drop_baddies(args, outdir):
+	if args.trim:
+		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln" % (outdir), shell=True)
+	else:
+		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln-gb" % (outdir), shell=True)
+
+	drop_shell = os.path.join(outdir,"dropbadseq_shell.txt")
+	dshell = open(drop_shell, "w")
+
+	if args.trim:
+		al_files = glob.glob(outdir + '/*fasta.aln-gb')
+	else:
+		al_files = glob.glob(outdir + '/*fasta.aln')
+	
+	for z in al_files:
+		sbpcd = 'singularity exec ./bbmap_38.90--he522d1c_3.sif reformat.sh in=%s/%s out=%s/%sc minconsecutivebases=100 dotdashxton=true' % (outdir,z,outdir,z)
+         	dshell.writelines(sbpcd + "\n")
+	dshell.close()
+
+	dropbaddies_run = subprocess.call('parallel -j %s --bar :::: %s/dropbadseq_shell.txt' % (args.CPU, outdir), shell=True)
+
+
+def fix_reverse(args, outdir):
+	
+	if args.trim:
+		subprocess.call("grep --include=\*.fasta.aln-gb -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
+	else:
+		subprocess.call("grep --include=\*.fasta.aln -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
 
 # Need to think of a way to read in the file and remove those things
 	rgb = open('%s/R_files.txt' % outdir, 'r')
@@ -320,9 +345,9 @@ def shell_iqtree(file, outdir, treedir, args):
 	tshell = open(tree_shell, "w")
 
 	if args.trim:
-		al_files = glob.glob(outdir + '/*fasta.aln-gb')
+		al_files = glob.glob(outdir + '/*fasta.aln-gbc')
 	else:
-		al_files = glob.glob(outdir + '/*fasta.aln')
+		al_files = glob.glob(outdir + '/*fasta.alnc')
 	
 	for z in al_files:
 		sbpc = 'singularity exec /home/ian/SqCL_Pipeline/iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T AUTO -B 1000' % z
@@ -418,7 +443,8 @@ def main():
 	tree_alns = alns
 	if args.trim:
 		trim_align(args, alns, outdir)
-		fix_reverse(outdir)
+		drop_baddies(args, outdir)
+		fix_reverse(args, outdir)
 		#trims = run_trimming(alns, args, outdir)
 		#tree_alns = trims
 	if args.tree_method == 'raxml':
