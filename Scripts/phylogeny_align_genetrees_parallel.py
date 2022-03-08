@@ -217,12 +217,14 @@ def trim_align(args, alns, outdir):
 
 	align_em = subprocess.call('parallel -j %s --bar :::: %s/alignment_shell.txt' % (args.CPU, outdir), shell=True)
 
-
+# let's remove samples that have little sequence data in a given alignment
 def drop_baddies(args, outdir):
+	# Gblocks outputs alignments as 10bp chunks separated by a space (and line wrapped at 60bp)
+	# use sed to remove all those spaces, because BBmap won't handle them
 	if args.trim:
-		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln" % (outdir), shell=True)
-	else:
 		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln-gb" % (outdir), shell=True)
+	else:
+		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln" % (outdir), shell=True)
 
 	drop_shell = os.path.join(outdir,"dropbadseq_shell.txt")
 	dshell = open(drop_shell, "w")
@@ -232,20 +234,22 @@ def drop_baddies(args, outdir):
 	else:
 		al_files = glob.glob(outdir + '/*fasta.aln')
 	
+	# use reformat.sh from BBmap to remove sequences without at least 100 consecutive basepairs of data
+	# we have to append ".fasta" to the end or BBmap will output the file as a fastq
 	for z in al_files:
-		sbpcd = 'singularity exec ./bbmap_38.90--he522d1c_3.sif reformat.sh in=%s/%s out=%s/%sc minconsecutivebases=100 dotdashxton=true' % (outdir,z,outdir,z)
+		sbpcd = 'singularity exec ./bbmap_38.90--he522d1c_3.sif reformat.sh in=%s out=%s.fasta minconsecutivebases=100 dotdashxton=true fastawrap=32000' % (outdir,z,outdir,z)
          	dshell.writelines(sbpcd + "\n")
 	dshell.close()
 
 	dropbaddies_run = subprocess.call('parallel -j %s --bar :::: %s/dropbadseq_shell.txt' % (args.CPU, outdir), shell=True)
 
 
+# remove the prepended _R_ from reversed seqs
 def fix_reverse(args, outdir):
-	
 	if args.trim:
-		subprocess.call("grep --include=\*.fasta.aln-gb -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
+		subprocess.call("grep --include=\*.fasta.aln-gb.fasta -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
 	else:
-		subprocess.call("grep --include=\*.fasta.aln -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
+		subprocess.call("grep --include=\*.fasta.aln.fasta -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
 
 # Need to think of a way to read in the file and remove those things
 	rgb = open('%s/R_files.txt' % outdir, 'r')
@@ -345,9 +349,9 @@ def shell_iqtree(file, outdir, treedir, args):
 	tshell = open(tree_shell, "w")
 
 	if args.trim:
-		al_files = glob.glob(outdir + '/*fasta.aln-gbc')
+		al_files = glob.glob(outdir + '/*fasta.aln-gb.fasta')
 	else:
-		al_files = glob.glob(outdir + '/*fasta.alnc')
+		al_files = glob.glob(outdir + '/*fasta.aln.fasta')
 	
 	for z in al_files:
 		sbpc = 'singularity exec /home/ian/SqCL_Pipeline/iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T AUTO -B 1000' % z
