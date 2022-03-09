@@ -451,6 +451,9 @@ def main():
 		fix_reverse(args, outdir)
 		#trims = run_trimming(alns, args, outdir)
 		#tree_alns = trims
+    else:
+        drop_baddies(args, outdir)
+        fix_reverse(args, outdir)
 	if args.tree_method == 'raxml':
 		run_raxml(outdir, treedir, tree_alns, args)
 	if args.tree_method == 'phyml':
