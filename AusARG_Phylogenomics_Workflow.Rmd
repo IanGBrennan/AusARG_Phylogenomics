@@ -289,6 +289,8 @@ Run \textcolor{NavyBlue}{in parallel}:
 
 ---
 
+\pagebreak
+
 # Alignment and Gene Trees
 
 ## Step 6: *phylogeny_make_alignments*
@@ -363,7 +365,11 @@ Quickly check availability with *htop*.
 ```{bash eval=F}
 server$ htop
 ```
-This will show the number of available CPUs, amount of memory being used, who is using it, et al.
+This will show the number of available CPUs, amount of memory being used, who is using it, et al.  
+If we're only interested in the process that our account is running:
+```{bash eval=F}
+server$ htop -u [username]
+```
 
 We can also quickly check available disk space with *free*.
 ```{bash eval=F}
@@ -372,9 +378,21 @@ server$ free -h
 This will show the amount of hard disk space installed, available, and in use. 
 
 
+
+
 ## Downloading Containers
 The included containerized packages have the file extension *.sif* (Singularity Image File) and have been downloaded from [*quay.io](https://quay.io/) using *Singularity*. E.g.
 ```{bash eval=F}
 $ singularity pull docker://quay.io/biocontainers/mafft:7.480--h779adbc_0
 ```
 There are *tons* of other available packages/programs, so have a browse. 
+
+## Mounting Drives
+Standard user accounts on *nick* write to disk /Data which does not have enough room for storing the raw read files and the outputs. To get around this we'll mount our account to a larger drive. Do this ***before*** starting any of the data processing. This will require superuser privileges, so seek out either Ian or Emily to help.
+```{bash eval=F}
+# from in your home user directory (/home/[username]/)
+server$ mkdir SqCL_Pipeline
+# now bind your SqCL_Pipeline to the SqCL directory on /Data2
+server$ sudo mount --bind /Data2/SqCL /home/[username]/SqCL_Pipeline
+```
+
