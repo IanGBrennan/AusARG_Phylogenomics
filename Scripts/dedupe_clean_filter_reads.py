@@ -298,7 +298,7 @@ def clean_up(args, out1, out2, out3, outSE, dir):
 		if os.path.isfile(file):
 			os.remove(file)
 
-	
+	return final
 
 def run_filter(args, info, dir):
 	out_stem = os.path.join(dir, args.sample)
@@ -310,8 +310,8 @@ def run_filter(args, info, dir):
 				'%s_R2_bb.final.fq.gz' % out_stem]
 	
 	subprocess.call("singularity exec ./bbmap_38.90--he522d1c_3.sif bbmap.sh in1=%s in2=%s ref=%s outm1=%s outm2=%s minid=%s -Xmx%sg" %
-						(bb_in[0], bb_in[1], args.ref, outfilesBB[0], outfilesBB[1], args.minid, args.mem), shell=True) 
-						#(finals[0], finals[1], args.ref, outfilesBB[0], outfilesBB[1], args.minid, args.mem), shell=True) 
+						#(bb_in[0], bb_in[1], args.ref, outfilesBB[0], outfilesBB[1], args.minid, args.mem), shell=True) 
+						(final[0], final[1], args.ref, outfilesBB[0], outfilesBB[1], args.minid, args.mem), shell=True) 
 
 
 	return outfilesBB
@@ -334,9 +334,9 @@ def main():
 	# run trimmomatic to clean up low quality
 	outfiles3, outfileSE = run_trimmomatic_clean(args, info, outfiles1, outfiles2, dir)
 	# clean it all up!
-	finals = clean_up(args, outfiles1, outfiles2, outfiles3, outfileSE, dir)
+	final = clean_up(args, outfiles1, outfiles2, outfiles3, outfileSE, dir)
 	# run filter from BBMap
-	outfilesBB = run_filter(args, info, dir)
+	outfilesBB = run_filter(args, info, dir, final)
 
 if __name__ == "__main__":
 	main()
