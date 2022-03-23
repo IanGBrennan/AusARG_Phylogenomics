@@ -342,7 +342,19 @@ Run \textcolor{NavyBlue}{in parallel}:
 + *CPU*: number of available cores, doubles as the number of parallel instances to run
 + *trimmed*: use the *--trimmed* flag if you previously trimmed your alignments using Gblocks. Otherwise it assumes the alignments files do not include the "-gb" suffix.
 
-If you'd like to operate this script outside the pipeline, you can use the generalized version *align_close_frame_general.py*. There are just a few key differences. 
+If you'd like to operate this script outside the pipeline, you can use the generalized version *align_close_frame_general.py*. There are just a few key differences.   
+
+Run \textcolor{NavyBlue}{in parallel}:
+```{bash eval=F}
+~SqCL_Pipeline$ python Scripts/align_close_frame_general.py \
+                --dir [...] --indir [...] --program [...] --CPU 40
+```
+**Requirements:**
+
++ *dir*: the directory path (within SqCL_Pipeline) that holds the fastq.gz files and the sample info file
++ *indir*: directory that holds the alignment files. If you input *--dir frogs/*, then *--indir* will be *--indir frogs/[alignment dir]*
++ *program*: options are "refine", "refineLemmon", "export", "align". *refine* and *refineLemmon* work with a good existing alignment and just tweaks it slightly, and so is comparatively fast. *align* assumes the input alignment is raw and needs considerable work, and so is much slower. *export* quickly reads in the file, and spits out a version with closed reading frames, but does little else.
++ *CPU*: number of available cores, doubles as the number of parallel instances to run
 
 
 \pagebreak
