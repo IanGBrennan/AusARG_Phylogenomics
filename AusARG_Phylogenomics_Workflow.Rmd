@@ -325,6 +325,25 @@ Run \textcolor{NavyBlue}{in parallel}:
 + *trim*: no commands required, but if this flag is included it will automatically clean and trim the reads. There are a number of additional parameters you can identify (*--b1*, *--b2*, *--b3*, *--b4*), but I suggest you keep them at the default settings as this will be a very light clean/trim.
 + *CPU*: number of available cores, doubles as the number of parallel instances to run
 
+---
+
+## Step 8 (optional): *align_close_frame*
+The *align_close_frame* script has only a parallel implementation. It takes our AHE loci (coding sequences) and uses [MACSE](https://bioweb.supagro.inra.fr/macse/) to set the alignment into an appropriate reading frame so that the first basepair is in reading frame 1, and the last reading frame is complete. This means that we can concatenate all AHE loci and then partition each base to the appropriate codon position. E.g. basepairs 1,4,7,10...100,103...1000,1003 = codon 1. Basepairs 2,5,8...101,104... = codon 2. Basepairs 3,6,9...103,106... = codon 3. MACSE works by translating the nucleotide alignment into an amino acid alignment. There are a few optionfs for the program, but probably best to just stick to the *refine* option. 
+
+Run \textcolor{NavyBlue}{in parallel}:
+```{bash eval=F}
+~SqCL_Pipeline$ python Scripts/align_close_frame.py \
+                --dir [...] --program [...] --CPU 40 --trimmed
+```
+**Requirements:**
+
++ *dir*: the directory path (within SqCL_Pipeline) that holds the fastq.gz files and the sample info file
++ *program*: options are "refine", "refineLemmon", "export", "align". *refine* and *refineLemmon* work with a good existing alignment and just tweaks it slightly, and so is comparatively fast. *align* assumes the input alignment is raw and needs considerable work, and so is much slower. *export* quickly reads in the file, and spits out a version with closed reading frames, but does little else.
++ *CPU*: number of available cores, doubles as the number of parallel instances to run
++ *trimmed*: use the *--trimmed* flag if you previously trimmed your alignments using Gblocks. Otherwise it assumes the alignments files do not include the "-gb" suffix.
+
+If you'd like to operate this script outside the pipeline, you can use the generalized version *align_close_frame_general.py*. There are just a few key differences. 
+
 
 \pagebreak
 
@@ -387,6 +406,24 @@ $ singularity pull docker://quay.io/biocontainers/mafft:7.480--h779adbc_0
 ```
 There are *tons* of other available packages/programs, so have a browse. 
 
+
+## No Hang Ups (nohup)
+The steps in this workflow will take varying amounts of time, from an instant to ages. For the longer steps (*dedupe_clean_filter_reads.py*, *phylogeny_align_genetrees_parallel.py*) you may encounter an error as a result of your shell disconnecting from the server: `client_loop: send disconnect: Broken pipe`. To get around this you can use `nohup` to keep the process running without hanging up, even if you get disconnected.  
+The basic syntax is:
+```{bash eval=F}
+server$ nohup [comand you want to run] > std.out &
+```
+Basically this says, don't hangup (`nohup`), run this command (`[commands]`), write output to (`>`), this document (`std.out`), and keep it running in the background (`&`).  
+If I wanted to run the alignment and genetree generating step (which may take ~1-2 days), I'd run:
+```{bash eval=F}
+server$ nohup python Scripts/phylogeny_align_genetrees_parallel.py \
+--dir Anilios --trim --CPU 80 --tree_method iqtree > std.out &
+```
+The 
+
+
+
+<!--
 ## Mounting Drives
 Standard user accounts on *nick* write to disk /Data which does not have enough room for storing the raw read files and the outputs. To get around this we'll mount our account to a larger drive. Do this ***before*** starting any of the data processing. This will require superuser privileges, so seek out either Ian or Emily to help.
 ```{bash eval=F}
@@ -395,4 +432,4 @@ server$ mkdir SqCL_Pipeline
 # now bind your SqCL_Pipeline to the SqCL directory on /Data2
 server$ sudo mount --bind /Data2/SqCL /home/[username]/SqCL_Pipeline
 ```
-
+-->
