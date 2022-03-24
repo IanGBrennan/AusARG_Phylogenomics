@@ -73,6 +73,13 @@ def get_args():
 		help="Will trim alignments using gblocks if flagged."
 	)
 
+        parser.add_argument(
+                "--nohup",
+                action="store_true",
+                default=False,
+                help="Will keep connection open with nohup if flagged."
+        )
+
 	parser.add_argument(
 		"--b1",
 		type=float,
@@ -214,13 +221,14 @@ def trim_align(args, alns, outdir):
 		sbpca = 'singularity exec gblocks_0.91b--h9ee0642_2.sif Gblocks %s -t=DNA -b1=%s -b2=%s -b3=%s -b4=%s -b5=h -p=n' % (pp, b1, b2, args.b3, args.b4)
 		ashell.writelines(sbpca + "\n")
 	ashell.close()
+	if args.nohup:
+	        align_em = subprocess.call('nohup parallel -j %s --bar :::: %s/alignment_shell.txt > aligns_nohup.out &' % (args.CPU, outdir), shell=True)
 
-	align_em = subprocess.call('parallel -j %s --bar :::: %s/alignment_shell.txt' % (args.CPU, outdir), shell=True)
+	else :
+		align_em = subprocess.call('parallel -j %s --bar :::: %s/alignment_shell.txt' % (args.CPU, outdir), shell=True)
 
-# let's remove samples that have little sequence data in a given alignment
+
 def drop_baddies(args, outdir):
-	# Gblocks outputs alignments as 10bp chunks separated by a space (and line wrapped at 60bp)
-	# use sed to remove all those spaces, because BBmap won't handle them
 	if args.trim:
 		subprocess.call("sed -r -i 's/\s+//g' %s/*fasta.aln-gb" % (outdir), shell=True)
 	else:
@@ -234,18 +242,16 @@ def drop_baddies(args, outdir):
 	else:
 		al_files = glob.glob(outdir + '/*fasta.aln')
 	
-	# use reformat.sh from BBmap to remove sequences without at least 100 consecutive basepairs of data
-	# we have to append ".fasta" to the end or BBmap will output the file as a fastq
 	for z in al_files:
-		sbpcd = 'singularity exec ./bbmap_38.90--he522d1c_3.sif reformat.sh in=%s out=%s.fasta minconsecutivebases=100 dotdashxton=true fastawrap=32000' % (outdir,z,outdir,z)
+		sbpcd = 'singularity exec ./bbmap_38.90--he522d1c_3.sif reformat.sh in=%s out=%s.fasta minconsecutivebases=100 dotdashxton=true fastawrap=32000' % (z,z)
          	dshell.writelines(sbpcd + "\n")
 	dshell.close()
 
 	dropbaddies_run = subprocess.call('parallel -j %s --bar :::: %s/dropbadseq_shell.txt' % (args.CPU, outdir), shell=True)
 
 
-# remove the prepended _R_ from reversed seqs
 def fix_reverse(args, outdir):
+	
 	if args.trim:
 		subprocess.call("grep --include=\*.fasta.aln-gb.fasta -rl '%s' -e '_R_' >> %s/R_files.txt" % (outdir, outdir), shell=True)
 	else:
@@ -354,11 +360,15 @@ def shell_iqtree(file, outdir, treedir, args):
 		al_files = glob.glob(outdir + '/*fasta.aln.fasta')
 	
 	for z in al_files:
-		sbpc = 'singularity exec /home/ian/SqCL_Pipeline/iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T AUTO -B 1000' % z
+		sbpc = 'singularity exec ./iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T AUTO -B 1000' % z
          	tshell.writelines(sbpc + "\n")
 	tshell.close()
 
-	iqtree_run = subprocess.call('parallel -j %s --bar :::: %s/genetree_shell.txt' % (args.CPU, treedir), shell=True)	
+	if args.nohup:
+	        iqtree_run = subprocess.call('nohup parallel -j %s --bar :::: %s/genetree_shell.txt > genetrees_nohup.out &' % (args.CPU, treedir), shell=True)       
+
+	else:
+		iqtree_run = subprocess.call('parallel -j %s --bar :::: %s/genetree_shell.txt' % (args.CPU, treedir), shell=True)	
 
 result_list = []
 def log_result(result):
@@ -435,8 +445,8 @@ def run_phyml(outdir, treedir, alns, args):
 		pool.close()
 		pool.join()
 
-#def move_trees(outdir, treedir):
-#	subprocess.call('mv %s/*.contree %s' % (outdir, treedir), shell=True)
+def move_trees(outdir, treedir):
+	subprocess.call('mv %s/*.contree %s' % (outdir, treedir), shell=True)
 	
 
 def main():
@@ -451,9 +461,9 @@ def main():
 		fix_reverse(args, outdir)
 		#trims = run_trimming(alns, args, outdir)
 		#tree_alns = trims
-    else:
-        drop_baddies(args, outdir)
-        fix_reverse(args, outdir)
+	else:
+		drop_baddies(args, outdir)
+		fix_reverse(args, outdir)
 	if args.tree_method == 'raxml':
 		run_raxml(outdir, treedir, tree_alns, args)
 	if args.tree_method == 'phyml':
@@ -461,9 +471,10 @@ def main():
 	if args.tree_method == 'iqtree':
 		#run_iqtree(outdir, treedir, tree_alns, args)
 		shell_iqtree(file, outdir, treedir, args)
+		move_trees(outdir, treedir)
 	if args.tree_method == 'none':
 		print('** NOTE: we have not built trees **')
-	#clean_up = move_trees(outdir, treedir)
+#	move_trees(outdir, treedir)
 
 if __name__ == "__main__":
 	main()

@@ -98,7 +98,7 @@ The *dedupe_clean_filter_reads.py* script first removes identical duplicate sequ
 
 \textcolor{RedOrange}{Suggested Usage:} this step can be quite memory intensive, but you should be able to run a number of samples in parallel. Consider *--mem 10 --CPU 4 --parallel 10*. At maximum usage this will use 100Gb memory and 40 CPU.
 
-\textcolor{DarkOrchid}{Output:} a */trim_reads* directory with *_adapters.fa*, *_duplicates.fq.gz*, and *_dd.fastq.gz* files. 
+\textcolor{DarkOrchid}{Output:} a */trim_reads* directory with *_adapters.fa*, *_duplicates.fq.gz*, and *_dd.fastq.gz* files. If filtering the reads, the final output files are *_bb.final.fastq.gz*. 
 
 Run \textcolor{Dandelion}{individually}:
 ```{bash eval=F}
@@ -143,7 +143,7 @@ The *trinity_filtered_assembly.py* script takes as input our deduplicated/cleane
 
 \textcolor{RedOrange}{Suggested Usage:} different steps in the [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki) assembler have different requirements. The first step (clustering k-mers) is highly memory intensive. The final phase (butterfly) requires high CPU capacity. Best bet is to run just a couple samples in parallel but with sufficient memory and core resources (e.g. *--mem 40 --CPU 40 --parallel 2*).
 
-\textcolor{DarkOrchid}{Output:} *_bb.final.fq.gz*, *_final.fz.gz*, and *_unpaired.final.fq.gz* files.
+\textcolor{DarkOrchid}{Output:} *_final.fq.gz* and *_unpaired.final.fq.gz* files.
 
 Run \textcolor{Dandelion}{individually}:
 ```{bash eval=F}
@@ -296,7 +296,7 @@ Run \textcolor{NavyBlue}{in parallel}:
 ## Step 6: *phylogeny_make_alignments*
 The *phylogeny_make_alignments* script will run across all available samples and pull contigs into target alignments. We don't need to parallelize this, so don't worry about it. One thing to consider is the *--minsamp* flag, which determines what is the minimum number of samples required to build an alignment. Most shortcut coalescent methods like ASTRAL require quartets to determine the bipartitions, so having *--minsamp* < 4 is not useful.
 
-\textcolor{DarkOrchid}{Output:} a */phylogeny* directory which holds a *locus_data.csv* summary file and a */alignments* subdirectory holding all the rough locus alignment files.
+\textcolor{DarkOrchid}{Output:} a */phylogeny* directory which holds a *locus_data.csv* summary file and a */alignments* subdirectory holding all the rough locus alignment files (*_.fasta*).
 
 Run \textcolor{Dandelion}{individually} (same as \textcolor{NavyBlue}{in parallel}):
 ```{bash eval=F}
@@ -312,7 +312,9 @@ Run \textcolor{Dandelion}{individually} (same as \textcolor{NavyBlue}{in paralle
 ---
 
 ## Step 7: *phylogeny_align_genetrees*
-The *phylogeny_align_genetrees_parallel* script has only a parallel implementation. It begins by finding the rough alignments, correcting the direction of contigs using [MAFFT](https://mafft.cbrc.jp/alignment/software/) to make sure they're all consistent. It then aligns the sequences using MAFFT, and optionally trims the edges and cleans up the alignment with [Gblocks](http://phylogeny.lirmm.fr/phylo_cgi/one_task.cgi?task_type=gblocks). Once the alignments are clean, it builds gene trees for each alignment (if specified with *--tree_method*). If your computing resources are low, you can always run the alignment and gene tree building iteratively by setting *--CPU 1*, but expect this to proceed ***slowly***.
+The *phylogeny_align_genetrees_parallel* script has only a parallel implementation. It begins by finding the rough alignments, correcting the direction of contigs using [MAFFT](https://mafft.cbrc.jp/alignment/software/) to make sure they're all consistent. It then aligns the sequences using MAFFT, and optionally trims the edges and cleans up the alignment with [Gblocks](http://phylogeny.lirmm.fr/phylo_cgi/one_task.cgi?task_type=gblocks). Alignments that are in the wrong direction are reversed automatically, and sequences with <100 consecutive bases are removed from alignments using bbmap. Once the alignments are clean, it builds gene trees for each alignment (if specified with *--tree_method*). If your computing resources are low, you can always run the alignment and gene tree building iteratively by setting *--CPU 1*, but expect this to proceed ***slowly***. Consensus genetrees are dropped in the */genetrees* directory. 
+
+\textcolor{DarkOrchid}{Output:} Because there are a number of steps here there are a number of intermediate files. *_.fasta* files are aligned become *_.fasta.aln* files which if trimmed become *_.fasta.aln-gb* files. Reversed alignments are noted in the *R_files.txt* file. Final alignment files are labelled *_.fasta.aln-gb.fasta*. iqtree creates many intermediate files (logs etc), but consensus trees (*contree*) are located in */phylogeny/genetrees*. 
 
 Run \textcolor{NavyBlue}{in parallel}:
 ```{bash eval=F}
@@ -328,7 +330,9 @@ Run \textcolor{NavyBlue}{in parallel}:
 ---
 
 ## Step 8 (optional): *align_close_frame*
-The *align_close_frame* script has only a parallel implementation. It takes our AHE loci (coding sequences) and uses [MACSE](https://bioweb.supagro.inra.fr/macse/) to set the alignment into an appropriate reading frame so that the first basepair is in reading frame 1, and the last reading frame is complete. This means that we can concatenate all AHE loci and then partition each base to the appropriate codon position. E.g. basepairs 1,4,7,10...100,103...1000,1003 = codon 1. Basepairs 2,5,8...101,104... = codon 2. Basepairs 3,6,9...103,106... = codon 3. MACSE works by translating the nucleotide alignment into an amino acid alignment. There are a few optionfs for the program, but probably best to just stick to the *refine* option. 
+The *align_close_frame* script has only a parallel implementation. It takes our AHE loci (coding sequences) and uses [MACSE](https://bioweb.supagro.inra.fr/macse/) to set the alignment into an appropriate reading frame so that the first basepair is in reading frame 1, and the last reading frame is complete. This means that we can concatenate all AHE loci and then partition each base to the appropriate codon position. E.g. basepairs 1,4,7,10...100,103...1000,1003 = codon 1. Basepairs 2,5,8...101,104... = codon 2. Basepairs 3,6,9...103,106... = codon 3. MACSE works by translating the nucleotide alignment into an amino acid alignment. There are a few options for the program, but probably best to just stick to the *refine* option. 
+
+\textcolor{DarkOrchid}{Output:} *_NT.fasta* and *_AA.fasta* alignment files are located in respective subdirectories of */macse*. 
 
 Run \textcolor{NavyBlue}{in parallel}:
 ```{bash eval=F}
@@ -343,6 +347,8 @@ Run \textcolor{NavyBlue}{in parallel}:
 + *trimmed*: use the *--trimmed* flag if you previously trimmed your alignments using Gblocks. Otherwise it assumes the alignments files do not include the "-gb" suffix.
 
 If you'd like to operate this script outside the pipeline, you can use the generalized version *align_close_frame_general.py*. There are just a few key differences.   
+
+\textcolor{DarkOrchid}{Output:} *_NT.fasta* and *_AA.fasta* alignment files are located in respective subdirectories of */macse*. 
 
 Run \textcolor{NavyBlue}{in parallel}:
 ```{bash eval=F}
