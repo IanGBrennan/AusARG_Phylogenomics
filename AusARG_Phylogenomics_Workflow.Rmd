@@ -330,6 +330,7 @@ Run \textcolor{NavyBlue}{in parallel}:
 ---
 
 ## Step 8 (optional): *align_close_frame*
+### Running in Pipeline
 The *align_close_frame* script has only a parallel implementation. It takes our AHE loci (coding sequences) and uses [MACSE](https://bioweb.supagro.inra.fr/macse/) to set the alignment into an appropriate reading frame so that the first basepair is in reading frame 1, and the last reading frame is complete. This means that we can concatenate all AHE loci and then partition each base to the appropriate codon position. E.g. basepairs 1,4,7,10...100,103...1000,1003 = codon 1. Basepairs 2,5,8...101,104... = codon 2. Basepairs 3,6,9...103,106... = codon 3. MACSE works by translating the nucleotide alignment into an amino acid alignment. There are a few options for the program, but probably best to just stick to the *refine* option. 
 
 \textcolor{DarkOrchid}{Output:} *_NT.fasta* and *_AA.fasta* alignment files are located in respective subdirectories of */macse*. 
@@ -346,6 +347,7 @@ Run \textcolor{NavyBlue}{in parallel}:
 + *CPU*: number of available cores, doubles as the number of parallel instances to run
 + *trimmed*: use the *--trimmed* flag if you previously trimmed your alignments using Gblocks. Otherwise it assumes the alignments files do not include the "-gb" suffix.
 
+### Running out of Pipeline
 If you'd like to operate this script outside the pipeline, you can use the generalized version *align_close_frame_general.py*. There are just a few key differences.   
 
 \textcolor{DarkOrchid}{Output:} *_NT.fasta* and *_AA.fasta* alignment files are located in respective subdirectories of */macse*. 
