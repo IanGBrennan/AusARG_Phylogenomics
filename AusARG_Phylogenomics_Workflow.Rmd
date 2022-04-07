@@ -366,6 +366,42 @@ Run \textcolor{NavyBlue}{in parallel}:
 
 \pagebreak
 
+# Outside the Pipeline
+For general use we've added some scripts that might be useful for handling alignments outside the context of the pipeline, meaning they are not dependent on the directory substructure. They do have to be operated from the SqCL directory as they call the same singularity files that we have stored there.  
+If we have combined a series of rough alignments from different projects we may want to quickly trim them with gblocks.
+
+
+**I NEED TO FIX THE ANNOYING TRAILING / ON THE END OF DIRECTORIES SO IT'S CONSISTENT BETWEEN SCRIPTS**
+
+## *align_gtrim_general*
+```{bash eval=F}
+~SqCL_Pipeline$ python Scripts/align_gtrim_general.py \
+                --indir [...] --CPU 60
+
+e.g. python Scripts/align_gtrim_general.py --indir Crown_Frogs/Alignments/ --CPU 60
+```
+
+## *align_close_frame_general*
+We may then want to close the reading frames with MACSE (*refine*), or do a more thorough alignment (*align*).
+```{bash eval=F}
+~SqCL_Pipeline$ python Scripts/align_close_frame_general.py \
+                --indir [...] --CPU 60
+
+e.g. python Scripts/align_close_frame_general.py --program align \
+     --indir Crown_Frogs/Alignments/clean_gb_alignments --CPU 60
+```
+
+## *phylogeny_genetrees_general*
+And finally just generate some gene trees with IQTREE
+```{bash eval=F}
+~SqCL_Pipeline$ python Scripts/phylogeny_genetrees_general.py \
+                --indir [...] --CPU [...]
+```
+
+
+
+\pagebreak
+
 # Crumbs
 Some additional resources which might be useful.
 

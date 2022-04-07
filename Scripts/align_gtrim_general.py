@@ -21,14 +21,6 @@ def get_args():
         )
 
         parser.add_argument(
-                "--program",
-                type=str,
-                default=None,
-                help="Settings for aligning with MACSE. " +
-                        "Options are: refine, refineLemmon, align, export."
-        )
-
-        parser.add_argument(
                 "--indir",
                 type=str,
                 default=None,
