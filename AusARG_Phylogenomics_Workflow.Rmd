@@ -396,6 +396,9 @@ And finally just generate some gene trees with IQTREE
 ```{bash eval=F}
 ~SqCL_Pipeline$ python Scripts/phylogeny_genetrees_general.py \
                 --indir [...] --CPU [...]
+  
+e.g. python Scripts/phylogeny_genetrees_general.py \
+     --indir Crown_Frogs/Alignments/macse_NT/ --CPU 60
 ```
 
 
