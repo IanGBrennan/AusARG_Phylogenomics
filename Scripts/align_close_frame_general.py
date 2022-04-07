@@ -21,13 +21,6 @@ def get_args():
         )
 
         parser.add_argument(
-                "--dir",
-                type=str,
-                default=None,
-                help="The base directory if running the pipeline."
-        )
-
-        parser.add_argument(
                 "--program",
                 type=str,
                 default=None,
@@ -73,22 +66,24 @@ def shell_macse(outdir, args, basedir):
         align_shell = os.path.join(outdir, "macse_shell.txt")
         ashell = open(align_shell, "w")
         
-        al_files = glob.glob(basedir + '*.fasta')
+        al_files = glob.glob(basedir + '/*.fasta')
 
         # run a loop across all the files and add them to the shell script
         for z in al_files:
                 if args.program == 'refine':
                         proc = 'java -jar ./macse_v2.06.jar -prog refineAlignment -align %s -stop 10' % z
                         ashell.writelines(proc + "\n")
-                if args.program == 'refineLemmon':
+                elif args.program == 'refineLemmon':
                         proc = "java -jar ./macse_v2.06.jar -prog refineAlignment -align %s -optim 1 -local_realign_init 0.1 -local_realign_dec 0.1 -fs 10" % z
                         ashell.writelines(proc + "\n")
-                if args.program == 'export':
-                        proc == "java -jar ./macse_v2.06.jar -prog exportAlignment -align %s -stop 10" % z
+                elif args.program == 'export':
+                        proc = "java -jar ./macse_v2.06.jar -prog exportAlignment -align %s -stop 10" % z
                         ashell.writelines(proc + "\n")
-                if args.program == 'align':
-                        proc == "java -jar ./macse_v2.06.jar -prog alignSequences -seq_lr %s -stop_lr 10" % z
+                elif args.program == 'align':
+                        proc = "java -jar ./macse_v2.06.jar -prog alignSequences -seq %s -stop_lr 10" % z
                         ashell.writelines(proc + "\n")
+                else:
+                        sys.exit('you gotta choose an alignment method')
         ashell.close()
 
         macse_run = subprocess.call('parallel -j %s --bar :::: %s/macse_shell.txt' % (args.CPU, outdir), shell=True)

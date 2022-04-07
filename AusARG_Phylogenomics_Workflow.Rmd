@@ -355,12 +355,11 @@ If you'd like to operate this script outside the pipeline, you can use the gener
 Run \textcolor{NavyBlue}{in parallel}:
 ```{bash eval=F}
 ~SqCL_Pipeline$ python Scripts/align_close_frame_general.py \
-                --dir [...] --indir [...] --program [...] --CPU 40
+                --indir [...] --program [...] --CPU 40
 ```
 **Requirements:**
 
-+ *dir*: the directory path (within SqCL_Pipeline) that holds the fastq.gz files and the sample info file
-+ *indir*: directory that holds the alignment files. If you input *--dir frogs/*, then *--indir* will be *--indir frogs/[alignment dir]*
++ *indir*: directory that holds the alignment files. Your working directory should still be **SqCL_Pipeline**, so *--indir* will bebelow that, e.g. *--indir frogs/[alignment dir]*
 + *program*: options are "refine", "refineLemmon", "export", "align". *refine* and *refineLemmon* work with a good existing alignment and just tweaks it slightly, and so is comparatively fast. *align* assumes the input alignment is raw and needs considerable work, and so is much slower. *export* quickly reads in the file, and spits out a version with closed reading frames, but does little else.
 + *CPU*: number of available cores, doubles as the number of parallel instances to run
 
