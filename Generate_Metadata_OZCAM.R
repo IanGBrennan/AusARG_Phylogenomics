@@ -16,6 +16,9 @@ ala_config(email="iangbrennan@gmail.com")
 ## registration numbers from the MV begin with DXXXXXX or RXXXXXX
 ## registration numbers from the ABTC begin with ABTCXXXXXX
 
+# remove authorization token
+gs4_deauth()
+
 # read in the file of samples to collect metadata for
 # THIS REQUIRES COLUMNS: RegNo, Genus, Species (named exactly), Extraction
 extracts <- read_sheet("https://docs.google.com/spreadsheets/d/1pswHDW2rq389WomTh5Crg59RPXDV9r6B160P5AV7q4Y/edit#gid=0") # pygos
@@ -70,6 +73,12 @@ records <- ala_occurrences(taxa = select_taxa("Pygopodidae"),
 # fix the locality field in the records
 records <- mutate(records, locality = paste(locality, "|", verbatimLocality))
 
+# fix the catalogNumber field (some ABTC records are ABTC1111.1)
+ABTCs <- dplyr::filter(records, collectionName == "South Australian Museum Australian Biological Tissue Collection")
+ABTCs$catalogNumber <- sapply(ABTCs$catalogNumber, function(x) strsplit(x, "[.]")[[1]][1])
+records <- rbind(records, ABTCs) # combine the fixed ABTC with old data
+records <- dplyr::distinct(records, catalogNumber, .keep_all=T) # remove duplicate records
+
 # extract info for the samples that are in your extraction list
 easy_matches <- filter(records, catalogNumber %in% extracts$RegNo); 
 paste("there are", (nrow(extracts)-nrow(easy_matches)), "records to curate by hand")
@@ -120,8 +129,8 @@ metadata <- data.frame(extraction_id = all_matches$Extraction, # this is a new c
                        sample_id = "",
                        specimen_id = paste(all_matches$institutionCode, all_matches$catalogNumber),
                        specimen_id_description = all_matches$collectionName,
-                       tissue_number = all_matches$catalogNumber,
-                       voucher_or_tissue = all_matches$catalogNumber,
+                       tissue_number = unlist(all_matches$catalogNumber),
+                       voucher_or_tissue = unlist(all_matches$catalogNumber),
                        institution_name = all_matches$institutionName,
                        tissue_collection = all_matches$collectionName,
                        sample_custodian = "",
@@ -180,4 +189,4 @@ metadata <- data.frame(extraction_id = all_matches$Extraction, # this is a new c
 
 # write your metadata to a csv file, and add it to the sheet here: 
 # https://docs.google.com/spreadsheets/d/1MG3DbOEgEtww2S1Y6XBmxg_0YWS1mh1Faf1jsl4QLi8/edit?ts=60cae464#gid=0
-write.csv(metadata, file="~/Desktop/Pygopodidae_Metadata_TESTO.csv", row.names = F)
+write.csv(metadata, file="~/Desktop/Pygopodidae_Carphodactylidae_Metadata.csv", row.names = F)

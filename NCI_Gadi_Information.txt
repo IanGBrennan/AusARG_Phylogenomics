@@ -1,0 +1,22 @@
+NCI Gadi Login
+	+ ssh ib1426@gadi.nci.org.au
+	+ p/w is for NCI login
+
+To display GUI from Gadi on your machine
+	+ ssh -Y ib1426@gadi.nci.org.au
+
+/home is for scripts
+/scratch or g/data are for data
+
+Check allocated space and memory
+	+ $ quota -s
+	+ $ lquota
+	+ lquota will show for across the whole AusARG project
+
+See what modules are loaded
+	+ module list
+See available modules
+	+ module avail
+Load a module
+	+ module load [name]
+	+ e.g. $ module load singularity
