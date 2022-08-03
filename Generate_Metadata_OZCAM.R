@@ -37,39 +37,45 @@ extracts <- read_sheet("https://docs.google.com/spreadsheets/d/1pswHDW2rq389WomT
 # if you have samples you'd like to exclude from this activity
 extracts <- filter(extracts, AusARG == "yes")
 
+
 # pull the ala records for your broad group
-records <- ala_occurrences(taxa = select_taxa("Pygopodidae"),
-                           columns = select_columns("scientificName",
-                                                    "decimalLatitude",
-                                                    "decimalLongitude",
-                                                    "institutionName",
-                                                    "collectionName",
-                                                    "institutionCode",
-                                                    "catalogNumber",
-                                                    "otherCatalogNumbers",
-                                                    "phylum",
-                                                    "class",
-                                                    "order",
-                                                    "family",
-                                                    "genus",
-                                                    "species",
-                                                    "subspecies",
-                                                    "common_name_and_lsid",
-                                                    "country",
-                                                    "stateProvince",
-                                                    "verbatimLocality",
-                                                    "habitat",
-                                                    "eventDate",
-                                                    "coordinateUncertaintyInMeters",
-                                                    "preparations",
-                                                    "sex",
-                                                    "lifeStage",
-                                                    "recordID",
-                                                    #"taxonID",
-                                                    "locality",
-                                                    "collector",
-                                                    "identifiedBy",
-                                                    "typeStatus"))
+records <- galah_call() |>
+  galah_identify("Diplodactylidae") |>
+  galah_select(scientificName,
+               decimalLatitude,
+               decimalLongitude,
+               institutionName,
+               collectionName,
+               institutionCode,
+               catalogNumber,
+               otherCatalogNumbers,
+               phylum,
+               class,
+               order,
+               family,
+               genus,
+               species,
+               subspecies,
+               common_name_and_lsid,
+               country,
+               stateProvince,
+               verbatimLocality,
+               habitat,
+               eventDate,
+               coordinateUncertaintyInMeters,
+               preparations,
+               sex,
+               lifeStage,
+               #recordID,
+               #taxonID,
+               locality,
+               recordedBy,
+               identifiedBy,
+               typeStatus) |>
+  atlas_occurrences()
+
+
+
 # fix the locality field in the records
 records <- mutate(records, locality = paste(locality, "|", verbatimLocality))
 
@@ -150,7 +156,7 @@ metadata <- data.frame(extraction_id = all_matches$Extraction, # this is a new c
                        common_name = all_matches$common_name_and_lsid,
                        identified_by = all_matches$identifiedBy,
                        collection_date = all_matches$eventDate,
-                       collector = all_matches$recordedBy,
+                       collector = all_matches$collector,
                        collection_method = "",
                        wild_captive = "wild",
                        source_population = NA,
@@ -189,4 +195,4 @@ metadata <- data.frame(extraction_id = all_matches$Extraction, # this is a new c
 
 # write your metadata to a csv file, and add it to the sheet here: 
 # https://docs.google.com/spreadsheets/d/1MG3DbOEgEtww2S1Y6XBmxg_0YWS1mh1Faf1jsl4QLi8/edit?ts=60cae464#gid=0
-write.csv(metadata, file="~/Desktop/Pygopodidae_Carphodactylidae_Metadata.csv", row.names = F)
+write.csv(metadata, file="~/Desktop/Diplodactylidae_Metadata.csv", row.names = F)

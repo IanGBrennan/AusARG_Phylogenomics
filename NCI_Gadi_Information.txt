@@ -20,3 +20,9 @@ See available modules
 Load a module
 	+ module load [name]
 	+ e.g. $ module load singularity
+	
+Existing storage
+	+ g/data/xl04/ib1426
+	
+SCP to Gadi
+	$ scp [local file] ib1426@gadi-dm.nci.org.au:[remote directory]
