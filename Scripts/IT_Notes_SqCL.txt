@@ -1,0 +1,3 @@
+if 'dedup_clean_filter_reads.py' fails to make *bb.final.fq.gz output files
+	+ check permissions to create ./ref directory
+	
