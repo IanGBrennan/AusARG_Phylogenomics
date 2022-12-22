@@ -34,6 +34,8 @@ concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv"
   info <- dplyr::select(info, "library_id", "genus", "species", "specimen_id", 
                         #"library_index_seq_P7", "library_index_seq_P5")
                         "library_index_seq", "library_index_seq_dual", "samp.no")
+  # FYI 'library_index_seq' = p7/i7 barcode; 'library_index_seq_dual' = p5/i5 barcode
+
   # make a column for the sample info
   info <- dplyr::mutate(info, sample = paste0(genus, "_", species, "_", specimen_id))
   # add the adaptor information to the file
@@ -122,8 +124,8 @@ concatenate_collate <- function(sample.dir, metadata.file, outfile="samples.csv"
 # metadata.file: file name for the csv metadata sequencing file (assumes it's in the 'sample.dir')
 # outfile: name the output file
 # outpath: the path on the machine where your files will be stored
-# adaptor1: sequence info for the first adaptor, with barcode replaced by '*' (don't touch this unless you really mean it)
-# adaptor2: sequence info for the second adaptor, with barcode replaced by '*' (don't touch this unless you really mean it)
+# adaptor1: sequence info for the first (P7/i7) adaptor, with barcode replaced by '*' (don't touch this unless you really mean it)
+# adaptor2: sequence info for the second (P5/i5) adaptor, with barcode replaced by '*' (don't touch this unless you really mean it)
 # total.readno: the total number of read files per sample (probably an even number between 2-8)
 
 # generate a shell script for DEDUPE CLEAN FILTER

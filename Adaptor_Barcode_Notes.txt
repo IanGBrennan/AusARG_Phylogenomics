@@ -1,0 +1,5 @@
+Switch Adaptor1 & Adaptor2 in dedupe_clean_filter.py
+	+ test by changing the adaptor+barcode combo
+
+Is it the reverse complement of i5 barcode?
+	+ test by RC the barcode/index seq

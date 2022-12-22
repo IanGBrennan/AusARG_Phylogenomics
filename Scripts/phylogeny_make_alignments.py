@@ -8,6 +8,15 @@ import subprocess
 Sonal Singhal
 created on 23 June 2016
 Written assuming nothing!
+
+
+This script can be used more generally to pull together alignments 
+from pseudo-reference genomes (PRG---just a file of sequences for a
+single sample). It will still require a samples.csv type file for
+the '--file' command, but that can be just a csv with a single field
+titled 'lineage', that lists the samples you want pulled together
+into alignments. 
+
 """
 
 def get_args():
@@ -154,7 +163,7 @@ def print_loci(dir, subdir, seq, loci, args):
 					o.write('>%s\n%s\n' % (sp, seq[sp][locus]))
 			o.close()
 
-		d.write('%s,%s,%.3f,NA,NA\n' % (locus, count, count / float(n_sp)))
+		d.write('%s,%s,%.3f,NA,NA\n' % (locus, count, 1-(count / float(n_sp))))
 
 	d.close()
 
