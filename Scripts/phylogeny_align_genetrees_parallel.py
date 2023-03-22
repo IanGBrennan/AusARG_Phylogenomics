@@ -360,7 +360,7 @@ def shell_iqtree(file, outdir, treedir, args):
 		al_files = glob.glob(outdir + '/*fasta.aln.fasta')
 	
 	for z in al_files:
-		sbpc = 'singularity exec ./iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T AUTO -B 1000' % z
+		sbpc = 'singularity exec ./iqtree_2.1.2--h56fc30b_0.sif iqtree -s %s --quiet -T 1 -B 1000' % z
          	tshell.writelines(sbpc + "\n")
 	tshell.close()
 
