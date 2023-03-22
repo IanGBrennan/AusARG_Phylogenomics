@@ -15,7 +15,7 @@ from pseudo-reference genomes (PRG---just a file of sequences for a
 single sample). It will still require a samples.csv type file for
 the '--file' command, but that can be just a csv with a single field
 titled 'lineage', that lists the samples you want pulled together
-into alignments. 
+into alignments. All sample PRGs must be in a directory labelled 'PRG'.
 
 """
 

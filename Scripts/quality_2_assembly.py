@@ -84,7 +84,7 @@ def get_seq(seqfile):
 	seq2 = [len(y) for x,y in seq.items()]
 	seq2 = sorted(seq2)
 
-        tot_length = np.sum(seq2)
+    tot_length = np.sum(seq2)
 
 	run_count = 0
 	for ix, val in enumerate(seq2):
