@@ -127,7 +127,7 @@ Run \textcolor{NavyBlue}{in parallel}:
 
 + *script*: the python script you'd like to run, here---*dedupe_clean_filter*
 + *dir*: the directory path (within SqCL_Pipeline) that holds the fastq.gz files and the sample info file
-+ *file*: the sample info file
++ *file*: the sample info file (annoyingly you need to specify *dir/file*, e.g. frogs/samples.csv)
 + *parallel*: how many instances should run simultaneously? Remember: total memory usage will be *--parallel* x *--mem*, and total CPU usage will be *--parallel* x *--CPU*
 + *project*: the project name
 + *mem*: memory use per instance

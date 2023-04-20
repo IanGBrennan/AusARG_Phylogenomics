@@ -1,4 +1,5 @@
 The folder containing the Singularity Image Files of all required software can be downloaded from here:
-https://drive.google.com/drive/folders/1wb7OgU4nnvpd-RPT7XZHkp4ewABX7IRS?usp=sharing
+https://rsbbox.anu.edu.au/Handlers/AnonymousDownload.ashx?folder=23a10d3e
+# OLD LINK: https://drive.google.com/drive/folders/1wb7OgU4nnvpd-RPT7XZHkp4ewABX7IRS?usp=sharing
 
 This folder is large (~4.3gb) as it contains a number of particularly large software packages and dependencies, including the Trinity assembler (2.5gb). 
